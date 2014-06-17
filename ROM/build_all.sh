@@ -4,7 +4,7 @@ show_help() {
 cat << EOL
 
 Usage: . build.sh [-h -n -r -c -ncc -d -j #]
-Compile CM11 with options to not repo sync, to make clean (or else make installclean),
+Compile C-RoM with options to not repo sync, to make clean (or else make installclean),
 to automatically upload the build, to not use ccache or to use a custom number of jobs.
 
 Default behavior is to sync and make installclean.
@@ -21,16 +21,15 @@ EOL
 }
 
 # Configurable parameters
-ccache_dir=$HOME/ccache/CM11
-ccache_log=$HOME/ccache/CM11/ccache.log
-jobs_sync=30
-jobs_build=20
-rom=cm
-rom_version=11
-device_codename=p880
-make_command="bacon"
-
-
+ccache_dir=$HOME/ccache/crom
+ccache_log=$HOME/ccache/crom/ccache.log
+jobs_sync=6
+jobs_build=6
+rom=C-RoM-KK
+rom_version=v7.1
+device_codename="falcon grouper maguro tilapia m8 n7000 n7100 toro toroplus golden"
+make_command="crom"
+ 
 # Reset all variables that might be set
 nosync=0
 noccache=0
@@ -42,7 +41,7 @@ zipname=""
 
 while :
 do
-    case $1 in
+    case  $1 in
         -h | --help)
              show_help
              help=1
@@ -105,6 +104,10 @@ done
 
 if [[ $help = 0 ]]; then		# skip the build if help is set
 
+# Initial build rom cycle
+for i in $device_codename
+do
+
 
 if [[ $noccache = 0 ]]; then		# use ccache by default
 echo ''
@@ -146,10 +149,10 @@ fi
 
 echo ''
 echo '##########'
-echo 'lunch p880'
+echo 'lunch $device_codename'
 echo '##########'
 echo ''
-lunch $rom""_$device_codename-eng
+lunch $rom_$device_codename-userdebug
 
 if [[ $clean = 0 ]]; then		# make installclean only if "make clean" wasn't issued
 	echo ''
@@ -188,9 +191,11 @@ fi
 if [[ $release = 1 ]]; then		# upload the compiled build
 	echo ''
 	echo '##########'
-	echo 'uploading build'
+	echo 'uploading build on c-rom'
 	echo '##########'
-	scp ./out/target/product/$device_codename/$zipname goo.im:public_html/CM11/$zipname 	# upload via ssh too goo.im servers
+	scp ./out/target/product/$device_codename/$zipname.md5 vocoderism@get.c-rom.org/var/www/$device_codename/$zipname.md5 	# upload via ssh to c-rom
+	scp ./out/target/product/$device_codename/$zipname vocoderism@get.c-rom.org/var/www/$device_codename/$zipname 	        # upload via ssh to c-rom
 	echo ''
 fi
+done
 fi
